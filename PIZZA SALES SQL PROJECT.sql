@@ -1,0 +1,137 @@
+CREATE DATABASE IF NOT EXISTS PIZZA;
+USE PIZZA;
+CREATE TABLE IF NOT EXISTS PIZZA_DATA(
+PIZZA_ID INT,
+ORDER_ID INT,
+PIZZA_NAME_ID VARCHAR(100),
+QUANTITY INT,
+ORDER_DATE VARCHAR(30),
+ORDER_TIME TIME,
+UNIT_PRICE DECIMAL(20,2),
+TOTAL_PRICE DECIMAL(30,2),
+PIZZA_SIZE VARCHAR(10),
+PIZZA_CATEGORY VARCHAR(50),
+PIZZA_INTGREDIENTS VARCHAR(1000),
+PIZZA_NAME VARCHAR(4000));
+
+SELECT * FROM PIZZA_DATA;
+LOAD DATA INFILE
+'D:/pizza_sales.csv'
+ INTO TABLE PIZZA_DATA
+ FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+IGNORE 1 ROWS;
+
+/* Q-1  Total Revenue*/
+SELECT SUM(TOTAL_PRICE) FROM PIZZA_DATA; 
+SELECT SUM(total_price) AS Total_Revenue FROM PIZZA_DATA;
+
+/*Q-2 Average Order Value*/
+SELECT AVG(ORDER_ID) FROM PIZZA_DATA;   
+SELECT (SUM(total_price) / COUNT(DISTINCT order_id)) AS Avg_order_Value FROM PIZZA_DATA;
+
+/*Q-3 Total Pizzas Sold*/
+SELECT SUM(QUANTITY) FROM PIZZA_DATA;  
+SELECT SUM(quantity) AS Total_pizza_sold FROM PIZZA_DATA;
+
+/*Q-4 Total Orders*/
+SELECT SUM(ORDER_ID) FROM PIZZA_DATA;  
+SELECT COUNT(DISTINCT order_id) AS Total_Orders FROM PIZZA_DATA;
+
+/*Q-5 Average Pizza Per Order*/
+SELECT PIZZA_NAME,AVG(QUANTITY) AS AVG_PIZZA_PER_ORDER FROM PIZZA_DATA GROUP BY PIZZA_NAME;
+SELECT CAST(CAST(SUM(quantity) AS DECIMAL(10,2)) / 
+CAST(COUNT(DISTINCT order_id) AS DECIMAL(10,2)) AS DECIMAL(10,2))
+AS Avg_Pizzas_per_order
+FROM PIZZA_DATA;
+
+/*Q-6 Daily Trend(UNIQUE) for Total Orders*/
+SELECT SUM(ORDER_ID),ORDER_DATE FROM PIZZA_DATA GROUP BY ORDER_DATE;
+SELECT dayname ( '1/1/2015' ) AS order_day, COUNT(DISTINCT order_id) AS total_orders 
+FROM PIZZA_DATA
+GROUP BY dayname(1/1/2015 );
+
+
+/*Q-7 Monthly Trend for Orders*/
+SELECT SUM(QUANTITY),MONTH(STR_TO_DATE(ORDER_DATE, '%y/%m/%d')) AS MONTHLY FROM PIZZA_DATA GROUP BY MONTHLY ;
+select DATENAME(MONTH, order_date) as Month_Name, COUNT(DISTINCT order_id) as Total_Orders
+from PIZZA_DATA
+GROUP BY DATENAME(MONTH, order_date);
+
+/*Q-8 Percentage of Sales by Pizza Category*/
+SELECT (SUM(TOTAL_PRICE)/ (SELECT SUM(TOTAL_PRICE) FROM PIZZA_DATA) * 100) AS PERCENTAGE_OF_SALES, PIZZA_CATEGORY
+FROM PIZZA_DATA GROUP BY PIZZA_CATEGORY;
+SELECT pizza_category, CAST(SUM(total_price) AS DECIMAL(10,2)) as total_revenue,
+CAST(SUM(total_price) * 100 / (SELECT SUM(total_price) from pizza_sales1) AS DECIMAL(10,2)) AS PCT
+FROM PIZZA_DATA
+GROUP BY pizza_category;
+
+/*Q-9 Percentage of Sales by Pizza Size*/
+SELECT (SUM(TOTAL_PRICE)/ (SELECT SUM(TOTAL_PRICE) FROM PIZZA_DATA) * 100) AS PERCENTAGE_OF_SALES, PIZZA_SIZE
+FROM PIZZA_DATA GROUP BY PIZZA_SIZE;
+SELECT pizza_size, CAST(SUM(total_price) AS DECIMAL(10,2)) as total_revenue,
+CAST(SUM(total_price) * 100 / (SELECT SUM(total_price) from pizza_sales1) AS DECIMAL(10,2)) AS PCT
+FROM PIZZA_DATA
+GROUP BY pizza_size
+ORDER BY pizza_size;
+
+/*Q-10 Total Pizzas Sold by Pizza Category*/
+SELECT SUM(QUANTITY), PIZZA_CATEGORY FROM PIZZA_DATA GROUP BY PIZZA_CATEGORY;
+SELECT pizza_category, SUM(quantity) as Total_Quantity_Sold
+FROM PIZZA_DATA
+WHERE MONTH(order_date) = 2
+GROUP BY pizza_category
+ORDER BY Total_Quantity_Sold DESC;
+
+ /*Q-11 Top 5 Pizzas by Revenue*/
+SELECT PIZZA_NAME, SUM(TOTAL_PRICE) AS TOTAL_REVENUE FROM PIZZA_DATA GROUP BY PIZZA_NAME ORDER BY TOTAL_REVENUE DESC LIMIT 5 ;
+SELECT pizza_name, SUM(total_price) AS Total_Revenue
+from PIZZA_DATA
+group by pizza_name
+order by total_revenue desc
+limit 5;
+
+/*Q-12 Bottom 5 Pizzas by Revenue*/
+SELECT PIZZA_NAME,SUM(TOTAL_PRICE) AS TOTAL_REVENUE FROM PIZZA_DATA GROUP BY PIZZA_NAME ORDER BY TOTAL_REVENUE DESC LIMIT 5 ;
+SELECT pizza_name, SUM(total_price) AS Total_Revenue
+from PIZZA_DATA
+group by pizza_name
+order by total_revenue asc
+limit 5;
+
+/*Q-13 Top 5 Pizzas by Quantity*/
+SELECT PIZZA_NAME,SUM(QUANTITY) AS TOTAL_QUANTITY FROM PIZZA_DATA GROUP BY PIZZA_NAME
+ORDER BY TOTAL_QUANTITY DESC LIMIT 5;
+SELECT pizza_name, SUM(total_price) AS Total_pizza_sold
+from PIZZA_DATA
+group by pizza_name
+order by Total_pizza_sold desc
+limit 5;
+ 
+ /*Q-14 Bottom 5 Pizzas by Quantity*/
+SELECT PIZZA_NAME,SUM(QUANTITY) AS TOTAL_QUANTITY FROM PIZZA_DATA GROUP BY PIZZA_NAME
+ORDER BY TOTAL_QUANTITY DESC LIMIT 5;
+SELECT pizza_name, SUM(total_price) AS Total_pizza_sold
+from PIZZA_DATA
+group by pizza_name
+order by Total_pizza_sold asc
+limit 5;
+
+/*Q-15 Top 5 Pizza by Total Orders*/
+SELECT PIZZA_NAME, SUM(ORDER_ID) AS TOTAL_ORDERS FROM PIZZA_DATA
+GROUP BY PIZZA_NAME ORDER BY TOTAL_ORDERS LIMIT 5;
+SELECT  pizza_name, COUNT(DISTINCT order_id) AS Total_Orders
+FROM PIZZA_DATA
+GROUP BY pizza_name
+ORDER BY Total_Orders DESC
+limit 5;
+
+/*Q-16 BoTTom 5 Pizzas by Total Orders*/
+SELECT PIZZA_NAME, SUM(ORDER_ID) AS TOTAL_ORDERS FROM PIZZA_DATA
+GROUP BY PIZZA_NAME ORDER BY TOTAL_ORDERS LIMIT 5;
+SELECT pizza_name, COUNT(DISTINCT order_id) AS Total_Orders
+FROM PIZZA_DATA
+GROUP BY pizza_name
+ORDER BY Total_Orders
+limit 5;
